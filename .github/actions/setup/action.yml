@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: Nirapod toolchain contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# A toolchain release in a component's job: the run packages, the bundles of
+# this runner's platform from the GitHub release, checked against its
+# SHA256SUMS, unpacked into /opt/nirapod-toolchain and verified; then
+# /opt/nirapod-toolchain/bin on PATH, with jasminc, jasmin-ct, jasmin2ec,
+# jasmin-checksafety and nirapod-toolchain (`nirapod-toolchain exec CMD`
+# runs CMD in the switch, for EasyCrypt).
+#
+#   - uses: nirapod-labs/toolchain/.github/actions/setup@<commit of the release tag>
+#     with:
+#       release: 2026.11.0
+#       parts: compiler switch      # or: compiler
+
+name: nirapod toolchain
+description: Install a release of the Nirapod toolchain
+inputs:
+  release:
+    description: "Release tag, e.g. 2026.11.0"
+    required: true
+  parts:
+    description: "compiler switch (default) or compiler"
+    required: false
+    default: compiler switch
+runs:
+  using: composite
+  steps:
+    - name: Run packages
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/../../../scripts/toolchain.sh" deps run'
+
+    - name: Install the release
+      shell: bash
+      env:
+        RELEASE: ${{ inputs.release }}
+        PARTS: ${{ inputs.parts }}
+      run: |
+        "$GITHUB_ACTION_PATH/../../../scripts/toolchain.sh" install "$RELEASE" "$PARTS"
+        "$GITHUB_ACTION_PATH/../../../scripts/toolchain.sh" bin-path
