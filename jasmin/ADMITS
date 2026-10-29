@@ -1,0 +1,202 @@
+# SPDX-FileCopyrightText: Nirapod toolchain contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# jasmin/ADMITS
+# =============
+#
+# Every declaration that could leave a proof unfinished or add an
+# assumption in the Rocq development of the pinned Jasmin commit, as found
+# by build.sh (`Admitted.`,
+# `admit.`, `Abort.`, `Axiom`, `Parameter`, `Hypothesis`, `Conjecture`, with
+# `Local`/`Global` forms), one per line: file, keyword, first word of the
+# declaration. build.sh stops if the scan
+# differs from this list, so any new such declaration is a reviewed change.
+#
+# None is `Admitted`, `admit` or `Abort`. The `Parameter` and `Axiom`
+# declarations of arch_extra.v, expr.v, gen_map.v, ident.v, memory_model.v,
+# tagged.v, unionfind.v and varmap.v are fields of module types, provided by
+# the modules that implement them; the `Hypothesis` declarations are section
+# hypotheses, discharged when their section closes. The global ones
+# are label.v (encoding of code labels: encode_label, decode_label and the
+# axiom decode_encode_label) and waes.v (MixColumns, InvMixColumns); they
+# appear in the assumption report (ASSUMPTIONS).
+#
+# Upstream main at JASMIN_BASE has 168 of these entries. The topics add
+# four, all from the safety pass and its soundness proof (carried from
+# jasmin-lang/jasmin#1572), and of the two kinds above: the fields
+# get_totalE, getP_mode and get_eq_mode of the module type VM in varmap.v,
+# implemented by its module Vm, and the section hypothesis
+# get_global_arr_init of toEC/safety_proof.v.
+
+proofs/arch/arch_extra.v: Parameter mk
+proofs/arch/arch_extra.v: Parameter mk
+proofs/arch/label.v: Axiom decode_encode_label
+proofs/arch/label.v: Parameter decode_label
+proofs/arch/label.v: Parameter encode_label
+proofs/compiler/allocation_proof.v: Hypothesis Hcheck:
+proofs/compiler/allocation_proof.v: Hypothesis check_f_extraP
+proofs/compiler/allocation_proof.v: Hypothesis eq_globs
+proofs/compiler/allocation_proof.v: Hypothesis init_allocP
+proofs/compiler/array_copy_proof.v: Hypothesis Hp
+proofs/compiler/array_copy_proof.v: Hypothesis freshX
+proofs/compiler/array_expansion_proof.v: Hypothesis Hcomp
+proofs/compiler/dead_code_proof.v: Hypothesis dead_code_ok
+proofs/compiler/inline_proof.v: Hypothesis (inline_fd_ok
+proofs/compiler/inline_proof.v: Hypothesis Incl
+proofs/compiler/inline_proof.v: Hypothesis uniq_funname
+proofs/compiler/it_compiler_proof.v: Hypothesis print_linearP
+proofs/compiler/it_compiler_proof.v: Hypothesis print_linearP
+proofs/compiler/it_compiler_proof.v: Hypothesis print_sprogP
+proofs/compiler/it_compiler_proof.v: Hypothesis print_sprogP
+proofs/compiler/it_compiler_proof.v: Hypothesis print_uprogP
+proofs/compiler/it_compiler_proof.v: Hypothesis print_uprogP
+proofs/compiler/it_linearization_proof.v: Hypothesis enough_space
+proofs/compiler/it_linearization_proof.v: Hypothesis linear_ok
+proofs/compiler/it_linearization_proof.v: Hypothesis var_tmps_not_magic
+proofs/compiler/it_merge_varmaps_proof.v: Hypothesis ok_p
+proofs/compiler/load_constants_in_cond_proof.v: Hypothesis Hp
+proofs/compiler/lower_glob_load_proof.v: Hypothesis glob_addr_opP
+proofs/compiler/lower_glob_load_proof.v: Hypothesis ok_p'
+proofs/compiler/makeReferenceArguments_proof.v: Hypothesis Hp
+proofs/compiler/makeReferenceArguments_proof.v: Hypothesis P0
+proofs/compiler/makeReferenceArguments_proof.v: Hypothesis PSNone
+proofs/compiler/makeReferenceArguments_proof.v: Hypothesis PSSome
+proofs/compiler/propagate_inline_proof.v: Hypothesis hcomp
+proofs/compiler/remove_assert_proof.v: Hypothesis remove_assert_ok
+proofs/compiler/remove_globals_proof.v: Hypothesis fds_ok
+proofs/compiler/remove_globals_proof.v: Hypothesis hincl
+proofs/compiler/remove_globals_proof.v: Hypothesis uniq_gd
+proofs/compiler/riscv_lower_addressing_proof.v: Hypothesis ok_p'
+proofs/compiler/stack_alloc_proof_1.v: Hypothesis (hvalid:
+proofs/compiler/stack_alloc_proof_1.v: Hypothesis P'_globs
+proofs/compiler/stack_alloc_proof_1.v: Hypothesis addr_no_overflow
+proofs/compiler/stack_alloc_proof_1.v: Hypothesis disjoint_writable
+proofs/compiler/stack_alloc_proof_1.v: Hypothesis slot_align
+proofs/compiler/stack_alloc_proof_1.v: Hypothesis wf_pmap0
+proofs/compiler/stack_alloc_proof_1.v: Hypothesis writable_not_glob
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis Halloc_fd
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis Hargs
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis Hdisjoint_zrange_locals
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis Hsub
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis Huincl
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis P'_globs
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis disjoint_zrange_globals_locals
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis hlayout
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis hlocal_map
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis hparams
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis no_overflow_size
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis rip_align
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis rip_rsp_neq
+proofs/compiler/stack_alloc_proof_2.v: Hypothesis rsp_align
+proofs/compiler/unionfind.v: Axiom find_empty
+proofs/compiler/unionfind.v: Axiom find_find
+proofs/compiler/unionfind.v: Axiom find_union
+proofs/compiler/unionfind.v: Parameter S
+proofs/compiler/unionfind.v: Parameter T
+proofs/compiler/unionfind.v: Parameter empty
+proofs/compiler/unionfind.v: Parameter find
+proofs/compiler/unionfind.v: Parameter union
+proofs/compiler/unionfind.v: Parameter unionfind
+proofs/compiler/x86_lowering_proof.v: Hypothesis fvars_correct:
+proofs/lang/expr.v: Hypothesis Hasgn:
+proofs/lang/expr.v: Hypothesis Hassert
+proofs/lang/expr.v: Hypothesis Hcall:
+proofs/lang/expr.v: Hypothesis Hcons:
+proofs/lang/expr.v: Hypothesis Hfor
+proofs/lang/expr.v: Hypothesis Hif
+proofs/lang/expr.v: Hypothesis Hmk
+proofs/lang/expr.v: Hypothesis Hnil
+proofs/lang/expr.v: Hypothesis Hopn
+proofs/lang/expr.v: Hypothesis Hsyscall
+proofs/lang/expr.v: Hypothesis Hwhile
+proofs/lang/expr.v: Parameter entry_info
+proofs/lang/expr.v: Parameter is_inline
+proofs/lang/expr.v: Parameter ret_info
+proofs/lang/expr.v: Parameter t
+proofs/lang/expr.v: Parameter var_info_of_ii
+proofs/lang/expr.v: Parameter with_location
+proofs/lang/expr.v: Parameter witness
+proofs/lang/gen_map.v: Axiom eq_dec_r
+proofs/lang/gen_map.v: Parameter all
+proofs/lang/gen_map.v: Parameter allP
+proofs/lang/gen_map.v: Parameter cmp
+proofs/lang/gen_map.v: Parameter cmpO
+proofs/lang/gen_map.v: Parameter elements
+proofs/lang/gen_map.v: Parameter elementsIn
+proofs/lang/gen_map.v: Parameter elementsP
+proofs/lang/gen_map.v: Parameter elementsU
+proofs/lang/gen_map.v: Parameter empty
+proofs/lang/gen_map.v: Parameter eq_dec
+proofs/lang/gen_map.v: Parameter filter_map
+proofs/lang/gen_map.v: Parameter filter_mapP
+proofs/lang/gen_map.v: Parameter fold
+proofs/lang/gen_map.v: Parameter foldP
+proofs/lang/gen_map.v: Parameter get
+proofs/lang/gen_map.v: Parameter get0
+proofs/lang/gen_map.v: Parameter has
+proofs/lang/gen_map.v: Parameter hasP
+proofs/lang/gen_map.v: Parameter in_codom
+proofs/lang/gen_map.v: Parameter in_codomP
+proofs/lang/gen_map.v: Parameter incl
+proofs/lang/gen_map.v: Parameter inclP
+proofs/lang/gen_map.v: Parameter incl_def
+proofs/lang/gen_map.v: Parameter incl_defP
+proofs/lang/gen_map.v: Parameter is_empty
+proofs/lang/gen_map.v: Parameter is_emptyP
+proofs/lang/gen_map.v: Parameter map
+proofs/lang/gen_map.v: Parameter map2
+proofs/lang/gen_map.v: Parameter map2P
+proofs/lang/gen_map.v: Parameter mapP
+proofs/lang/gen_map.v: Parameter mapi
+proofs/lang/gen_map.v: Parameter mapiP
+proofs/lang/gen_map.v: Parameter remove
+proofs/lang/gen_map.v: Parameter removeP
+proofs/lang/gen_map.v: Parameter set
+proofs/lang/gen_map.v: Parameter setP
+proofs/lang/gen_map.v: Parameter setP_eq
+proofs/lang/gen_map.v: Parameter setP_neq
+proofs/lang/gen_map.v: Parameter t
+proofs/lang/gen_map.v: Parameter t
+proofs/lang/gen_map.v: Parameter t:
+proofs/lang/ident.v: Parameter id_kind
+proofs/lang/ident.v: Parameter id_name
+proofs/lang/ident.v: Parameter t
+proofs/lang/ident.v: Parameter tag
+proofs/lang/ident.v: Parameter tagI
+proofs/lang/it_sems_core.v: Hypothesis sem_F_ext
+proofs/lang/memory_model.v: Parameter alloc_stackP
+proofs/lang/memory_model.v: Parameter alloc_stack_complete
+proofs/lang/memory_model.v: Parameter free_stackP
+proofs/lang/memory_model.v: Parameter mem
+proofs/lang/memory_model.v: Parameter write_mem_stable
+proofs/lang/psem_facts.v: Hypothesis init_finalize_mem_equiv
+proofs/lang/sem_one_varmap.v: Hypothesis HmkI
+proofs/lang/sem_one_varmap_facts.v: Hypothesis call_kill_not_magic
+proofs/lang/sem_one_varmap_facts.v: Hypothesis var_tmp_not_magic
+proofs/lang/tagged.v: Parameter cmp
+proofs/lang/tagged.v: Parameter cmpO
+proofs/lang/tagged.v: Parameter t
+proofs/lang/tagged.v: Parameter t
+proofs/lang/tagged.v: Parameter t_eqType
+proofs/lang/tagged.v: Parameter t_eq_axiom
+proofs/lang/tagged.v: Parameter t_eqb
+proofs/lang/tagged.v: Parameter tag
+proofs/lang/tagged.v: Parameter tag
+proofs/lang/tagged.v: Parameter tagI
+proofs/lang/varmap.v: Parameter get
+proofs/lang/varmap.v: Parameter getP
+proofs/lang/varmap.v: Parameter getP_mode
+proofs/lang/varmap.v: Parameter get_eq_mode
+proofs/lang/varmap.v: Parameter get_totalE
+proofs/lang/varmap.v: Parameter init
+proofs/lang/varmap.v: Parameter initP
+proofs/lang/varmap.v: Parameter set
+proofs/lang/varmap.v: Parameter setP
+proofs/lang/varmap.v: Parameter setP_eq
+proofs/lang/varmap.v: Parameter setP_neq
+proofs/lang/varmap.v: Parameter t
+proofs/lang/waes.v: Parameter InvMixColumns
+proofs/lang/waes.v: Parameter MixColumns
+proofs/toEC/safety_proof.v: Hypothesis get_global_arr_init
+proofs/toEC/toec_for_proof.v: Hypothesis Hp
+proofs/toEC/toec_proof.v: Hypothesis Hp

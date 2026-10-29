@@ -1,0 +1,106 @@
+# SPDX-FileCopyrightText: Nirapod toolchain contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# jasmin/ASSUMPTIONS
+# ==================
+#
+# What `Print Assumptions` reports for the end-to-end compiler theorem and
+# for the two architecture records the components compile for, one name per
+# line under each query. build.sh stops if a report differs, in either
+# direction, so a change of the theorem's assumptions is a reviewed change.
+#
+# - PrimInt63.*, Uint63Axioms.*, Sint63Axioms.*, Int63.*: Rocq's primitive
+#   63-bit integers and the axioms that specify them.
+# - ProofIrrelevance.proof_irrelevance, Eqdep.Eq_rect_eq.eq_rect_eq: standard
+#   axioms of the Rocq library.
+# - label.encode_label, label.decode_label, label.decode_encode_label: the
+#   encoding of code labels as machine words, left abstract
+#   (proofs/arch/label.v).
+# - waes.MixColumns, waes.InvMixColumns: the AES column mixing used by the
+#   x86-64 AES instructions, left abstract (proofs/lang/waes.v).
+
+[it_compile_prog_to_asmP]
+Eqdep.Eq_rect_eq.eq_rect_eq
+Int63.Uint63Axioms.eqb_correct
+Int63.Uint63Axioms.eqb_refl
+PrimInt63.add
+PrimInt63.compares
+PrimInt63.eqb
+PrimInt63.int
+PrimInt63.land
+PrimInt63.leb
+PrimInt63.lor
+PrimInt63.lsl
+PrimInt63.lsr
+PrimInt63.ltb
+PrimInt63.sub
+ProofIrrelevance.proof_irrelevance
+Sint63Axioms.compare_spec
+Uint63Axioms.add_spec
+Uint63Axioms.leb_spec
+Uint63Axioms.lor_spec
+Uint63Axioms.lsl_spec
+Uint63Axioms.lsr_spec
+Uint63Axioms.ltb_spec
+Uint63Axioms.of_to_Z
+Uint63Axioms.sub_spec
+label.decode_encode_label
+label.decode_label
+label.encode_label
+
+[armv8a_h_params]
+Eqdep.Eq_rect_eq.eq_rect_eq
+Int63.Uint63Axioms.eqb_correct
+Int63.Uint63Axioms.eqb_refl
+PrimInt63.add
+PrimInt63.compares
+PrimInt63.eqb
+PrimInt63.int
+PrimInt63.land
+PrimInt63.leb
+PrimInt63.lor
+PrimInt63.lsl
+PrimInt63.lsr
+PrimInt63.ltb
+PrimInt63.sub
+Sint63Axioms.compare_spec
+Uint63Axioms.add_spec
+Uint63Axioms.leb_spec
+Uint63Axioms.lor_spec
+Uint63Axioms.lsl_spec
+Uint63Axioms.lsr_spec
+Uint63Axioms.ltb_spec
+Uint63Axioms.of_to_Z
+Uint63Axioms.sub_spec
+label.decode_label
+label.encode_label
+
+[x86_h_params]
+Eqdep.Eq_rect_eq.eq_rect_eq
+Int63.Uint63Axioms.eqb_correct
+Int63.Uint63Axioms.eqb_refl
+PrimInt63.add
+PrimInt63.compares
+PrimInt63.eqb
+PrimInt63.int
+PrimInt63.land
+PrimInt63.leb
+PrimInt63.lor
+PrimInt63.lsl
+PrimInt63.lsr
+PrimInt63.ltb
+PrimInt63.sub
+Sint63Axioms.compare_spec
+Uint63Axioms.add_spec
+Uint63Axioms.leb_spec
+Uint63Axioms.lor_spec
+Uint63Axioms.lsl_spec
+Uint63Axioms.lsr_spec
+Uint63Axioms.ltb_spec
+Uint63Axioms.of_to_Z
+Uint63Axioms.sub_spec
+label.decode_label
+label.encode_label
+waes.InvMixColumns
+waes.MixColumns
+

@@ -1,0 +1,4 @@
+# SPDX-FileCopyrightText: Nirapod toolchain contributors
+# SPDX-License-Identifier: Apache-2.0
+source-path=SCRIPTDIR
+external-sources=true

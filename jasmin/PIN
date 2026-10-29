@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: Nirapod toolchain contributors
+# SPDX-License-Identifier: Apache-2.0
+# shellcheck shell=bash disable=SC2034
+#
+# jasmin/PIN
+# ==========
+#
+# The Jasmin compiler and the environment it is built in. Shell syntax,
+# read by build.sh; it only sets variables.
+#
+# Jasmin is a commit of the integration branch of the fork
+# nirapod-labs/jasmin: JASMIN_BASE, a commit of upstream main, with each of
+# our topic branches merged into it. JASMIN_TAG is the fork's tag on that
+# commit. build.sh fetches JASMIN_COMMIT with its history, checks that
+# JASMIN_BASE is an ancestor and that the checked-out HEAD is
+# JASMIN_COMMIT, and lists the merged topics and every commit on the base
+# in provenance.txt. Other git inputs are pinned by full commit id in the
+# same way.
+#
+# The environment follows the upstream CI at JASMIN_BASE: default.nix,
+# scripts/mathcomp-word.nix, and nixpkgs 652efddd59a2 (scripts/nixpkgs.nix),
+# which builds Rocq 9.0 with OCaml 4.14.
+
+# Upstream main of 2026-10-29 with 18 topics merged (58 commits).
+JASMIN_URL=https://github.com/nirapod-labs/jasmin.git
+JASMIN_TAG=nirapod-2026.11.0
+JASMIN_COMMIT=abda48d5744f9d7d3fb96cb29f3a0894d12bc645
+JASMIN_BASE=6c4994d56a9a030201e62275a7d343b101bd0a23
+
+OCAML_VERSION=4.14.4
+
+# opam package repositories. The switch sees these two and nothing else, so
+# the solver's answer depends only on the pins. Released Rocq packages live
+# in the `released/` directory of rocq-prover/opam.
+OPAM_REPO_URL=https://github.com/ocaml/opam-repository.git
+OPAM_REPO_COMMIT=f8293643f2af7e03d1910f7d6e5229c7943f9ea1
+ROCQ_OPAM_URL=https://github.com/rocq-prover/opam.git
+ROCQ_OPAM_COMMIT=564ab90f5874c0c91cee746c4706bc2ba686a5a9
+
+# mathcomp-word at the revision upstream CI uses (scripts/mathcomp-word.nix).
+COQWORD_URL=https://github.com/jasmin-lang/coqword.git
+COQWORD_COMMIT=86ed49aeca65a8d32e81bb386778f49b45ee505b
+
+# Rocq stack of default.nix: coqPackages_9_0 with coq-elpi 2.5.2 (elpi
+# 2.0.7), hierarchy-builder 1.9.1 and mathcomp 2.4.0. OCaml libraries at the
+# versions of the same nixpkgs, except yojson: elpi 2.0.7 requires
+# atdgen < 2.16, hence yojson < 3, and the solver takes the newest yojson 2.
+JASMIN_OPAM_PACKAGES="
+  rocq-core.9.0.1 coq-core.9.0.1 rocq-stdlib.9.0.0 coq-stdlib.9.0.0
+  elpi.2.0.7 coq-elpi.2.5.2 coq-hierarchy-builder.1.9.1
+  coq-mathcomp-ssreflect.2.4.0 coq-mathcomp-algebra.2.4.0
+  coq-paco.4.2.3 coq-itree.5.2.1
+  menhir.20260203 menhirLib.20260203 apron.v0.9.15 zarith.1.14
+  batteries.3.11.0 cmdliner.2.1.1 angstrom.0.16.1
+  yojson camlidl conf-ppl ocamlfind dune
+"
+
+# opam itself: the build refuses another version, whose solver or repository
+# handling could give a different switch from the same pins.
+OPAM_VERSION=2.6.0

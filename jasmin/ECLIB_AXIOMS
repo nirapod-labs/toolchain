@@ -1,0 +1,120 @@
+# SPDX-FileCopyrightText: Nirapod toolchain contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# jasmin/ECLIB_AXIOMS
+# ===================
+#
+# Every `axiom` and every `admit` or `admitted` in the Jasmin EasyCrypt
+# library (eclib/*.ec) of the tree build.sh builds, one per line: file,
+# keyword, name, and `<-` when the line is not a declaration but realises
+# an axiom of a cloned theory. build.sh stops if the scan differs from this
+# list.
+#
+# There is no `admit` or `admitted`. The declared axioms are of two kinds:
+#
+# - Parameters of abstract theories (JArray, JByte_array, JWord,
+#   JWord_array: 44 declarations). They hold in a clone of the theory once
+#   the clone realises them; the `<-` lines are such realisations.
+# - Global axioms: the memory model (JMemory: mem_eq_ext, get_setE,
+#   allocated8_setE), the AES helpers (AES: InvSboxK, InvMixColumnsK,
+#   InvMixColumnsD) and the horizontal addition of the x86-64 model
+#   (JModel_x86: hadd_nil, hadd_cons2). EasyCrypt proofs about code that
+#   uses them rest on them, so they are part of those proofs' trusted base.
+
+eclib/AES.ec: axiom InvMixColumnsD
+eclib/AES.ec: axiom InvMixColumnsK
+eclib/AES.ec: axiom InvSboxK
+eclib/JArray.ec: axiom ext_eq
+eclib/JArray.ec: axiom ext_eq
+eclib/JArray.ec: axiom get_out
+eclib/JArray.ec: axiom get_out
+eclib/JArray.ec: axiom initE
+eclib/JArray.ec: axiom initE
+eclib/JByte_array.ec: axiom _gt0_r
+eclib/JByte_array.ec: axiom _gt0_r <-
+eclib/JByte_array.ec: axiom _gt0_r <-
+eclib/JByte_array.ec: axiom _gt0_r <-
+eclib/JByte_array.ec: axiom _gt0_r <-
+eclib/JByte_array.ec: axiom _gt0_r <-
+eclib/JByte_array.ec: axiom _m_one_bits8
+eclib/JByte_array.ec: axiom _m_one_bits8 <-
+eclib/JByte_array.ec: axiom _m_one_bits8 <-
+eclib/JByte_array.ec: axiom _m_one_bits8 <-
+eclib/JByte_array.ec: axiom _m_one_bits8 <-
+eclib/JByte_array.ec: axiom _m_one_bits8 <-
+eclib/JByte_array.ec: axiom _nth_of_list
+eclib/JByte_array.ec: axiom _nth_of_list <-
+eclib/JByte_array.ec: axiom _nth_of_list <-
+eclib/JByte_array.ec: axiom _nth_of_list <-
+eclib/JByte_array.ec: axiom _nth_of_list <-
+eclib/JByte_array.ec: axiom _nth_of_list <-
+eclib/JByte_array.ec: axiom _wordP
+eclib/JByte_array.ec: axiom _wordP
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _wordP <-
+eclib/JByte_array.ec: axiom _zero_bits8
+eclib/JByte_array.ec: axiom _zero_bits8 <-
+eclib/JByte_array.ec: axiom _zero_bits8 <-
+eclib/JByte_array.ec: axiom _zero_bits8 <-
+eclib/JByte_array.ec: axiom _zero_bits8 <-
+eclib/JByte_array.ec: axiom _zero_bits8 <-
+eclib/JByte_array.ec: axiom big_get_byte
+eclib/JByte_array.ec: axiom big_get_byte <-
+eclib/JByte_array.ec: axiom big_get_byte <-
+eclib/JByte_array.ec: axiom big_get_byte <-
+eclib/JByte_array.ec: axiom big_get_byte <-
+eclib/JByte_array.ec: axiom big_get_byte <-
+eclib/JByte_array.ec: axiom gt0_r
+eclib/JByte_array.ec: axiom gt0_r <-
+eclib/JByte_array.ec: axiom gt0_r <-
+eclib/JByte_array.ec: axiom gt0_r <-
+eclib/JByte_array.ec: axiom gt0_r <-
+eclib/JByte_array.ec: axiom gt0_r <-
+eclib/JByte_array.ec: axiom small_get_byte
+eclib/JByte_array.ec: axiom small_get_byte <-
+eclib/JByte_array.ec: axiom small_get_byte <-
+eclib/JByte_array.ec: axiom small_get_byte <-
+eclib/JByte_array.ec: axiom small_get_byte <-
+eclib/JByte_array.ec: axiom small_get_byte <-
+eclib/JMemory.ec: axiom allocated8_setE
+eclib/JMemory.ec: axiom get_setE
+eclib/JMemory.ec: axiom mem_eq_ext
+eclib/JModel_x86.ec: axiom hadd_cons2
+eclib/JModel_x86.ec: axiom hadd_nil
+eclib/JWord.ec: axiom and_mod
+eclib/JWord.ec: axiom andwE
+eclib/JWord.ec: axiom bitsE
+eclib/JWord.ec: axiom bits_divmod
+eclib/JWord.ec: axiom get_to_uint
+eclib/JWord.ec: axiom gt0_r
+eclib/JWord.ec: axiom gt0_size
+eclib/JWord.ec: axiom initiE
+eclib/JWord.ec: axiom invwE
+eclib/JWord.ec: axiom of_int_mod
+eclib/JWord.ec: axiom of_intwE
+eclib/JWord.ec: axiom of_uintK
+eclib/JWord.ec: axiom onewE
+eclib/JWord.ec: axiom orwE
+eclib/JWord.ec: axiom rol_xor_shft
+eclib/JWord.ec: axiom sizeBrS
+eclib/JWord.ec: axiom size_le_256
+eclib/JWord.ec: axiom to_uintK
+eclib/JWord.ec: axiom to_uintRL
+eclib/JWord.ec: axiom to_uint_bits
+eclib/JWord.ec: axiom to_uint_cmp
+eclib/JWord.ec: axiom wordP
+eclib/JWord.ec: axiom xorwE
+eclib/JWord_array.ec: axiom gt0_sizeW
+eclib/JWord_array.ec: axiom gt0_sizeW
+eclib/JWord_array.ec: axiom gt0_sizeWB
+eclib/JWord_array.ec: axiom gt0_sizeWB
+eclib/JWord_array.ec: axiom gt0_sizeWS
+eclib/JWord_array.ec: axiom gt0_sizeWS
