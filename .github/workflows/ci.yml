@@ -1,0 +1,181 @@
+# SPDX-FileCopyrightText: Nirapod toolchain contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# The one workflow of this repository.
+#
+#   lint     ShellCheck and REUSE
+#   build    the toolchain from scratch on the three platforms, every check
+#            of build.sh, packed into its two bundles per platform
+#   release  on a tag YYYY.MM.N only: the tag agrees with jasmin/PIN and
+#            the fork's tag, then the bundles, SHA256SUMS and each
+#            platform's provenance are published as the GitHub release,
+#            after approval in the `release` environment
+#
+# Every platform builds under /opt/nirapod-toolchain, where a component's
+# job installs the bundles (scripts/toolchain.sh install). Linux on AArch64
+# builds without EasyCrypt: several pinned provers publish no binaries for
+# it.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['[0-9][0-9][0-9][0-9].[0-9][0-9].[0-9]*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: ShellCheck
+        run: shellcheck build.sh scripts/toolchain.sh
+
+      - name: Copyright and licence of every file
+        run: pipx run reuse==6.2.0 lint
+
+  build:
+    name: build ${{ matrix.platform }}
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {platform: linux-x86_64, runner: ubuntu-24.04, jobs: 4, options: ""}
+          - {platform: linux-aarch64, runner: ubuntu-24.04-arm, jobs: 4, options: "--no-easycrypt"}
+          - {platform: macos-aarch64, runner: macos-26, jobs: 2, options: ""}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    env:
+      WORK: /opt/nirapod-toolchain
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Host packages and opam
+        run: scripts/toolchain.sh deps build
+
+      - name: Work directory
+        run: scripts/toolchain.sh prepare
+
+      - name: Build and check the toolchain
+        env:
+          JOBS: ${{ matrix.jobs }}
+          OPTIONS: ${{ matrix.options }}
+        run: ./build.sh ${OPTIONS:+"$OPTIONS"} all
+
+      - name: Pack the bundles
+        run: |
+          scripts/toolchain.sh prune
+          scripts/toolchain.sh pack "$RUNNER_TEMP/bundle"
+          cp "$WORK/logs/provenance.txt" "$RUNNER_TEMP/bundle/provenance.txt"
+          scripts/toolchain.sh verify
+
+      - name: Upload the bundles
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: toolchain-${{ matrix.platform }}
+          path: ${{ runner.temp }}/bundle
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+
+      # The logs, and the actual outputs of the compiler's test suites, so
+      # that a failed comparison with an expected output can be read and,
+      # when the change is intended, the expected file updated in the fork.
+      - name: Logs and test outputs of a failed build
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: failure-${{ matrix.platform }}
+          path: |
+            /opt/nirapod-toolchain/logs
+            /opt/nirapod-toolchain/jasmin/compiler/_build-test/default/tests/**/*.output
+            /opt/nirapod-toolchain/jasmin/compiler/_build-test/default/tests/**/*.corrected
+          retention-days: 7
+          if-no-files-found: ignore
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: The tag agrees with the pins
+        env:
+          RELEASE: ${{ github.ref_name }}
+        run: |
+          . jasmin/PIN
+          [ "$JASMIN_TAG" = "nirapod-$RELEASE" ] \
+            || { echo "jasmin/PIN names $JASMIN_TAG, the release is $RELEASE"; exit 1; }
+          got=$(git ls-remote "$JASMIN_URL" "refs/tags/$JASMIN_TAG^{}" "refs/tags/$JASMIN_TAG" \
+                | awk 'NR == 1 { print $1 }')
+          [ "$got" = "$JASMIN_COMMIT" ] \
+            || { echo "$JASMIN_TAG is ${got:-missing} on the fork, jasmin/PIN pins $JASMIN_COMMIT"; exit 1; }
+          grep -q "^## $RELEASE\$" CHANGELOG.md \
+            || { echo "CHANGELOG.md has no section ## $RELEASE"; exit 1; }
+
+      - name: Download the bundles
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: toolchain-*
+          path: ${{ runner.temp }}/in
+
+      - name: Assets and notes
+        env:
+          RELEASE: ${{ github.ref_name }}
+        run: |
+          in=$RUNNER_TEMP/in out=$RUNNER_TEMP/out
+          mkdir -p "$out"
+          for p in linux-x86_64 linux-aarch64 macos-aarch64; do
+            mv "$in/toolchain-$p/switch.tar.zst"  "$out/toolchain-$RELEASE-$p-switch.tar.zst"
+            mv "$in/toolchain-$p/compiler.tar.gz" "$out/toolchain-$RELEASE-$p-compiler.tar.gz"
+            mv "$in/toolchain-$p/provenance.txt"  "$out/toolchain-$RELEASE-$p-provenance.txt"
+          done
+          (cd "$out" && sha256sum -- * > SHA256SUMS)
+          prov=$out/toolchain-$RELEASE-linux-x86_64-provenance.txt
+          # shellcheck disable=SC2016 # the backticks are Markdown
+          {
+            awk -v r="## $RELEASE" '$0 == r { on = 1; next } /^## / { on = 0 } on' CHANGELOG.md
+            echo
+            echo "### Jasmin"
+            echo
+            sed -n 's/^jasmin commit: /Commit: /p; s/^upstream base: /Upstream base: /p' "$prov"
+            echo
+            sed -n '/^integration (first parent):$/,/^[^ ]/{ /^  /p; }' "$prov" \
+              | sed 's/^  \([0-9a-f]\{12\}\)[0-9a-f]* /- `\1` /'
+          } > "$RUNNER_TEMP/notes.md"
+          cat "$RUNNER_TEMP/notes.md"
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE" --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "toolchain $RELEASE" --notes-file "$RUNNER_TEMP/notes.md" \
+            "$RUNNER_TEMP"/out/*
