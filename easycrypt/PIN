@@ -1,0 +1,97 @@
+# SPDX-FileCopyrightText: Nirapod toolchain contributors
+# SPDX-License-Identifier: Apache-2.0
+# shellcheck shell=bash disable=SC2034
+#
+# easycrypt/PIN
+# =============
+#
+# EasyCrypt and the SMT provers it calls. Shell syntax, read by
+# build.sh: it sets variables and defines prover_assets.
+# EasyCrypt is installed into the same opam switch as the Jasmin build
+# environment (../jasmin/PIN).
+#
+# EasyCrypt at a commit of its main branch, after release r2026.09. The
+# upstream Jasmin CI at the Jasmin pin checks eclib/ against both the
+# r2026.09 release and EasyCrypt main (scripts/easycrypt.nix, .gitlab-ci.yml);
+# this pin is the newest of the two. Between r2026.09 and this commit,
+# EasyCrypt fixed tactics that could prove false judgements (`kill` in
+# loops, loop fission and fusion side conditions, `proc change`, `call /fc`,
+# `byupto`, `circuit simplify`, removal of `t_prfalse`). The Jasmin library
+# of the pinned tree is checked against it by `./build.sh test`.
+
+EASYCRYPT_URL=https://github.com/easycrypt/easycrypt.git
+EASYCRYPT_COMMIT=e7eff05dcef179fbd0b428e987632278e526b862
+
+# EasyCrypt accepts why3 >= 1.8.0, < 1.9.
+EASYCRYPT_OPAM_PACKAGES="why3.1.8.2"
+
+# SMT provers
+# -----------
+#
+# EasyCrypt projects name provers with a minimum version, as in
+# `provers = Z3@4.12`; EasyCrypt then uses the lowest installed version that
+# is at least the one named (src/ecProvers.ml, get_prover). The set below is
+# the subset of EasyCrypt's own CI image at the pinned commit
+# (scripts/docker/Dockerfile) that the developments built with this
+# toolchain resolve to, so that their proofs run against the prover versions
+# their CI uses:
+#
+#     Z3@4.8            -> Z3 4.8.17       crypto-specs
+#     Z3@4.12           -> Z3 4.12.6       formosa SPHINCS+ and Keccak proofs
+#     Z3@4.13           -> Z3 4.13.4       Jasmin eclib/
+#     (newest)          -> Z3 4.16.0       upstream Jasmin CI (scripts/z3.nix)
+#     CVC5@1.0          -> CVC5 1.0.9      formosa SPHINCS+ and Keccak proofs
+#     CVC5@1.2          -> CVC5 1.2.1      crypto-specs
+#     Alt-Ergo@2.5      -> Alt-Ergo 2.5.4  formosa XMSS proofs
+#     Alt-Ergo@2.6      -> Alt-Ergo 2.6.4  formosa SPHINCS+ proofs
+#
+# Each is installed in the switch as <name>-<version>, the form Why3 detects
+# with its version. Why3 1.8.2 does not list Z3 4.16.0 among its known
+# versions and configures it with the driver of the newest Z3 it knows, as in
+# EasyCrypt's CI. CVC5 1.3.4, also in that image, is left out: Why3 1.8.2
+# cannot read its version string and records it with an empty version.
+#
+# Official release binaries. The SHA-256 is that of the downloaded file;
+# build.sh refuses a mismatch.
+#
+# prover_assets <os>-<arch> prints one line per prover:
+#
+#     name version url sha256 member
+#
+# member is the path of the executable inside a zip archive, or "-" when the
+# download is the executable itself. It fails for a platform without a
+# table: Linux on AArch64 has no official binaries of Z3 4.8.17 and 4.12.6,
+# CVC5 1.0.9 or Alt-Ergo, and builds the compiler alone there
+# (build.sh --no-easycrypt).
+prover_assets() {
+  local z=https://github.com/Z3Prover/z3/releases/download
+  local c=https://github.com/cvc5/cvc5/releases/download
+  local a=https://github.com/OCamlPro/alt-ergo/releases/download
+  case "$1" in
+    Darwin-arm64) cat <<EOT
+z3 4.8.17 $z/z3-4.8.17/z3-4.8.17-arm64-osx-10.16.zip 310e59325625f74b06475024819384af6d61855786af94802cb02907cf501081 z3-4.8.17-arm64-osx-10.16/bin/z3
+z3 4.12.6 $z/z3-4.12.6/z3-4.12.6-arm64-osx-11.0.zip 184f7152e98282985e4e42dda919b89900157091c96f4dcd7c8dbb5e5f5f58f2 z3-4.12.6-arm64-osx-11.0/bin/z3
+z3 4.13.4 $z/z3-4.13.4/z3-4.13.4-arm64-osx-13.7.1.zip e23d03005558c1b5d3c1b8bd503e65b84edfe3f1ae4298bd8c4710b5b0a645eb z3-4.13.4-arm64-osx-13.7.1/bin/z3
+z3 4.16.0 $z/z3-4.16.0/z3-4.16.0-arm64-osx-15.7.3.zip 41828fa07d5cb77bfaee326e8e6dac074f26329c09c633f9e66012bb917cf8ae z3-4.16.0-arm64-osx-15.7.3/bin/z3
+cvc5 1.0.9 $c/cvc5-1.0.9/cvc5-macOS-arm64 595b9dc9d5210d7653098a941ddd41df282056e06c29d7c100d2ed6f6a0645ed -
+cvc5 1.2.1 $c/cvc5-1.2.1/cvc5-macOS-arm64-static.zip 18e0bd283d44f720f72bf80175169ef63e985628b7ba1502aaf812f57f981461 cvc5-macOS-arm64-static/bin/cvc5
+alt-ergo 2.5.4 $a/v2.5.4/alt-ergo-v2.5.4-aarch64-macos 9bfba701700079d5038b4181df45d73525d62f8b6de18ccba0ac9687ba8be257 -
+alt-ergo 2.6.4 $a/v2.6.4/alt-ergo-v2.6.4-aarch64-macos 083d2d432d4954a2c234b1ca88a97b8c7e98bcbd3dcbae1753be401eb1633196 -
+EOT
+      ;;
+    Linux-x86_64) cat <<EOT
+z3 4.8.17 $z/z3-4.8.17/z3-4.8.17-x64-glibc-2.31.zip 0dd9b3057a17ad3a951fca7634fd59e15dd33524e31bda527c1baf4dbc72570c z3-4.8.17-x64-glibc-2.31/bin/z3
+z3 4.12.6 $z/z3-4.12.6/z3-4.12.6-x64-glibc-2.35.zip 6719feaa729c321a73db870d7f7ebc111c6e0919ba4e0b34942976e3788d4a6d z3-4.12.6-x64-glibc-2.35/bin/z3
+z3 4.13.4 $z/z3-4.13.4/z3-4.13.4-x64-glibc-2.35.zip 93f91f9c6f4a00a041c19fc7a74adc1f441c8244ce70d486e19abcd89c6a014b z3-4.13.4-x64-glibc-2.35/bin/z3
+z3 4.16.0 $z/z3-4.16.0/z3-4.16.0-x64-glibc-2.39.zip 7288c49a5bd6dbafd7b0b0d1f65956b91672da24b08f09242919af159be3418e z3-4.16.0-x64-glibc-2.39/bin/z3
+cvc5 1.0.9 $c/cvc5-1.0.9/cvc5-Linux 4df0c07868222c20c1976ac0ebb4c0638231b721a18add599cbfd5c243f80ac2 -
+cvc5 1.2.1 $c/cvc5-1.2.1/cvc5-Linux-x86_64-static.zip 6d44abc233980a14d72cc5809287d27c3335b1d6ee863381d0b5ffcbd0d8de56 cvc5-Linux-x86_64-static/bin/cvc5
+alt-ergo 2.5.4 $a/v2.5.4/alt-ergo-v2.5.4-x86_64-linux-musl 7f9ecff426b96877c3199d572217afedef87ae3a3d727ebd1f027c032be56701 -
+alt-ergo 2.6.4 $a/v2.6.4/alt-ergo-v2.6.4-x86_64-linux-musl 80d41dd9cf4b024be7412e499f81960ddc63978f5d78a29311a05aaab125681a -
+EOT
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
