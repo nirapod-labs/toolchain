@@ -567,7 +567,7 @@ jasmin_admit_scan() {
   declared='^[[:space:]]*((Local|Global)[[:space:]]+)?'
   declared+='(Axiom|Axioms|Parameter|Parameters|Hypothesis|Hypotheses|Conjecture)'
   declared+='[[:space:]]'
-  (cd "$TREE" && LC_ALL=C grep -a -rnE "$unfinished|$declared" --include='*.v' proofs || true) \
+  (cd "$TREE" && { LC_ALL=C grep -a -rnE "$unfinished|$declared" --include='*.v' proofs || true; }) \
     | LC_ALL=C sort -t: -k1,1 -k2,2n > "$LOG/admit-scan.log"
   got=$(sed -E 's/^([^:]+):[0-9]+:[[:space:]]*(.*)$/\1: \2/' "$LOG/admit-scan.log" \
         | awk '{ s = $1 " " $2; if (NF >= 3) s = s " " $3; print s }' | LC_ALL=C sort)
@@ -583,7 +583,7 @@ jasmin_eclib_scan() {
   local got axiom admitted
   axiom='^[[:space:]]*(declare[[:space:]]+)?axiom[[:space:]]'
   admitted='(^|[^A-Za-z_])(admit|admitted)([^A-Za-z_]|$)'
-  (cd "$TREE" && LC_ALL=C grep -a -rnE "$axiom|$admitted" --include='*.ec' eclib || true) \
+  (cd "$TREE" && { LC_ALL=C grep -a -rnE "$axiom|$admitted" --include='*.ec' eclib || true; }) \
     | LC_ALL=C sort -t: -k1,1 -k2,2n > "$LOG/eclib-axioms.log"
   got=$(sed -E 's/^([^:]+):[0-9]+:[[:space:]]*(.*)$/\1: \2/' "$LOG/eclib-axioms.log" \
         | awk '{ kw = $2; name = $3
