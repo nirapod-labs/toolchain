@@ -17,15 +17,17 @@
 # in provenance.txt. Other git inputs are pinned by full commit id in the
 # same way.
 #
-# The environment follows the upstream CI at JASMIN_BASE: default.nix,
-# scripts/mathcomp-word.nix, and nixpkgs 652efddd59a2 (scripts/nixpkgs.nix),
-# which builds Rocq 9.0 with OCaml 4.14.
+# The environment is the one of release 2026.11.0, that of upstream CI at
+# 6c4994d: default.nix, scripts/mathcomp-word.nix, and nixpkgs 652efddd59a2
+# (scripts/nixpkgs.nix), which builds Rocq 9.0 with OCaml 4.14. Upstream CI
+# at JASMIN_BASE moved to nixpkgs 54cdc5669189 and elpi 4.0.1; this release
+# keeps the earlier environment, so that only the compiler changes.
 
-# Upstream main of 2026-10-29 with 18 topics merged (58 commits).
+# Upstream main of 2026-11-07 with 18 topics merged (57 commits).
 JASMIN_URL=https://github.com/nirapod-labs/jasmin.git
-JASMIN_TAG=nirapod-2026.11.0
-JASMIN_COMMIT=abda48d5744f9d7d3fb96cb29f3a0894d12bc645
-JASMIN_BASE=6c4994d56a9a030201e62275a7d343b101bd0a23
+JASMIN_TAG=nirapod-2026.11.1
+JASMIN_COMMIT=87a265eccd7ebd7b73f954bffa482715c6c771de
+JASMIN_BASE=af6e17f9ad34463f6dd20fdb6dfa1a0852e768a7
 
 OCAML_VERSION=4.14.4
 

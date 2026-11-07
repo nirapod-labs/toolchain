@@ -21,7 +21,7 @@
 # axiom decode_encode_label) and waes.v (MixColumns, InvMixColumns); they
 # appear in the assumption report (ASSUMPTIONS).
 #
-# Upstream main at JASMIN_BASE has 168 of these entries. The topics add
+# Upstream main at JASMIN_BASE has 169 of these entries. The topics add
 # four, all from the safety pass and its soundness proof (carried from
 # jasmin-lang/jasmin#1572), and of the two kinds above: the fields
 # get_totalE, getP_mode and get_eq_mode of the module type VM in varmap.v,
@@ -197,6 +197,7 @@ proofs/lang/varmap.v: Parameter setP_neq
 proofs/lang/varmap.v: Parameter t
 proofs/lang/waes.v: Parameter InvMixColumns
 proofs/lang/waes.v: Parameter MixColumns
+proofs/toEC/for_to_while_proof.v: Hypothesis Hp
 proofs/toEC/safety_proof.v: Hypothesis get_global_arr_init
 proofs/toEC/toec_for_proof.v: Hypothesis Hp
 proofs/toEC/toec_proof.v: Hypothesis Hp
