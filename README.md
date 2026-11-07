@@ -18,9 +18,9 @@ platforms, so a component's CI installs the toolchain instead of building it.
 | `linux-aarch64` | `ubuntu-24.04-arm` | compiler, switch without EasyCrypt |
 | `macos-aarch64` | `macos-26` | compiler, switch with EasyCrypt, Why3 and the provers |
 
-What is pinned, and why, is in [docs/PINS.md](docs/PINS.md). What the build
-checks is in [docs/BUILDING.md](docs/BUILDING.md), and how a release is made
-in [docs/RELEASING.md](docs/RELEASING.md).
+What is pinned, and why, is in [pins](docs/PINS.md). What the build
+checks is in [building](docs/BUILDING.md), and how a release is made
+in [releasing](docs/RELEASING.md).
 
 ## Using the toolchain
 
