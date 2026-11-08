@@ -36,6 +36,21 @@ that section followed by the Jasmin commit, its upstream base and the
 first-parent commits of `integration`, taken from the provenance of
 `linux-x86_64`.
 
+## Publishing again without a rebuild
+
+When the builds of a tag pass and publishing fails, the bundles stay with
+the tag's run for seven days. Once the cause is fixed on `main`, run the
+workflow by hand on `main` with `release` set to the tag and `bundles-run`
+set to the ID of the tag's run:
+
+```sh
+gh workflow run ci.yml --ref main -f release=2026.11.1 -f bundles-run=<run id>
+```
+
+That run builds nothing. Its release job checks that the given run was the
+push of that tag and built the tagged commit, makes the checks above, and
+publishes those bundles after approval in the `release` environment.
+
 ## A failed build
 
 A failed build uploads its logs and the actual outputs of the compiler's

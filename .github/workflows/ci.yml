@@ -11,6 +11,11 @@
 #            platform's provenance are published as the GitHub release,
 #            after approval in the `release` environment
 #
+# Run by hand with the input `release`, the workflow builds nothing: it
+# publishes that existing tag from the bundles of the tag's own run, given
+# as `bundles-run`, after checking that the run built the tagged commit.
+# This is for a release whose builds passed and whose publishing failed.
+#
 # Every platform builds under /opt/nirapod-toolchain, where a component's
 # job installs the bundles (scripts/toolchain.sh install). Linux on AArch64
 # builds without EasyCrypt: several pinned provers publish no binaries for
@@ -24,13 +29,22 @@ on:
     branches: [main]
     tags: ['[0-9][0-9][0-9][0-9].[0-9][0-9].[0-9]*']
   workflow_dispatch:
+    inputs:
+      release:
+        description: Publish this existing tag without building
+        required: false
+        default: ''
+      bundles-run:
+        description: ID of the tag's CI run whose bundles are published
+        required: false
+        default: ''
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+  group: ci-${{ inputs.release || github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' && !inputs.release }}
 
 jobs:
   lint:
@@ -51,6 +65,7 @@ jobs:
   build:
     name: build ${{ matrix.platform }}
     needs: lint
+    if: ${{ !inputs.release }}
     strategy:
       fail-fast: false
       matrix:
@@ -112,22 +127,46 @@ jobs:
           if-no-files-found: ignore
 
   release:
-    if: github.ref_type == 'tag'
     needs: build
+    if: >-
+      ${{ !cancelled() &&
+          ((github.ref_type == 'tag' && needs.build.result == 'success') ||
+           (inputs.release && needs.build.result == 'skipped')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment: release
     permissions:
       contents: write
+      actions: read
+    env:
+      RELEASE: ${{ inputs.release || github.ref_name }}
     steps:
       - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.release && format('refs/tags/{0}', inputs.release) || github.ref }}
           persist-credentials: false
 
-      - name: The tag agrees with the pins
+      - name: The bundles' run built this tag
+        if: ${{ inputs.release }}
         env:
-          RELEASE: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ inputs.bundles-run }}
+        run: |
+          case $RELEASE in
+            [0-9][0-9][0-9][0-9].[0-9][0-9].[0-9]*) ;;
+            *) echo "$RELEASE is not a release tag"; exit 1 ;;
+          esac
+          case $RUN in
+            ''|*[!0-9]*) echo "bundles-run must be the ID of a run, got '$RUN'"; exit 1 ;;
+          esac
+          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN" \
+                --jq '[.event, .head_branch, .head_sha] | join(" ")')
+          want="push $RELEASE $(git rev-parse HEAD)"
+          [ "$run" = "$want" ] \
+            || { echo "run $RUN is '$run', expected '$want'"; exit 1; }
+
+      - name: The tag agrees with the pins
         run: |
           . jasmin/PIN
           [ "$JASMIN_TAG" = "nirapod-$RELEASE" ] \
@@ -143,14 +182,22 @@ jobs:
             || { echo "CHANGELOG.md has no section ## $RELEASE"; exit 1; }
 
       - name: Download the bundles
+        if: ${{ !inputs.release }}
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: toolchain-*
           path: ${{ runner.temp }}/in
 
+      - name: Download the bundles of the tag's run
+        if: ${{ inputs.release }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: toolchain-*
+          path: ${{ runner.temp }}/in
+          run-id: ${{ inputs.bundles-run }}
+          github-token: ${{ github.token }}
+
       - name: Assets and notes
-        env:
-          RELEASE: ${{ github.ref_name }}
         run: |
           in=$RUNNER_TEMP/in out=$RUNNER_TEMP/out
           mkdir -p "$out"
@@ -177,7 +224,6 @@ jobs:
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE: ${{ github.ref_name }}
         run: |
           gh release create "$RELEASE" --repo "$GITHUB_REPOSITORY" --verify-tag \
             --title "toolchain $RELEASE" --notes-file "$RUNNER_TEMP/notes.md" \
