@@ -132,8 +132,11 @@ jobs:
           . jasmin/PIN
           [ "$JASMIN_TAG" = "nirapod-$RELEASE" ] \
             || { echo "jasmin/PIN names $JASMIN_TAG, the release is $RELEASE"; exit 1; }
-          got=$(git ls-remote "$JASMIN_URL" "refs/tags/$JASMIN_TAG^{}" "refs/tags/$JASMIN_TAG" \
-                | awk 'NR == 1 { print $1 }')
+          # An annotated tag lists twice, the tag object first and the
+          # commit it points at as ^{} second; a lightweight tag only once.
+          got=$(git ls-remote "$JASMIN_URL" "refs/tags/$JASMIN_TAG" "refs/tags/$JASMIN_TAG^{}" \
+                | awk '$2 ~ /\^\{\}$/ { peeled = $1 } NR == 1 { first = $1 }
+                       END { print peeled ? peeled : first }')
           [ "$got" = "$JASMIN_COMMIT" ] \
             || { echo "$JASMIN_TAG is ${got:-missing} on the fork, jasmin/PIN pins $JASMIN_COMMIT"; exit 1; }
           grep -q "^## $RELEASE\$" CHANGELOG.md \
