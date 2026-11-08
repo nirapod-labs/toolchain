@@ -5,7 +5,11 @@
 #
 #   lint     ShellCheck and REUSE
 #   build    the toolchain from scratch on the three platforms, every check
-#            of build.sh, packed into its two bundles per platform
+#            of build.sh, packed into its two bundles per platform; on a
+#            push to main only when a build input changed (build.sh,
+#            opam-packages.txt, scripts/, jasmin/, easycrypt/), since a
+#            change elsewhere builds the same toolchain; pull requests and
+#            tags always build
 #   release  on a tag YYYY.MM.N only: the tag agrees with jasmin/PIN and
 #            the fork's tag, then the bundles, SHA256SUMS and each
 #            platform's provenance are published as the GitHub release,
@@ -50,6 +54,8 @@ jobs:
   lint:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    outputs:
+      build: ${{ steps.inputs.outputs.build }}
     steps:
       - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -62,10 +68,34 @@ jobs:
       - name: Copyright and licence of every file
         run: pipx run reuse==6.2.0 lint
 
+      # A failed comparison fails the job, so an unknown change set builds
+      # nothing silently. Above 250 files the list may be cut short, and
+      # the toolchain is built.
+      - name: Whether a build input changed
+        id: inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          build=true
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$GITHUB_REF_TYPE" = branch ] \
+             && [ -n "$BEFORE" ] && [ "$BEFORE" != 0000000000000000000000000000000000000000 ]; then
+            files=$(gh api "repos/$GITHUB_REPOSITORY/compare/$BEFORE...$GITHUB_SHA" \
+                    --jq '.files[].filename')
+            printf '%s\n' "$files"
+            if [ "$(printf '%s\n' "$files" | wc -l)" -lt 250 ] \
+               && ! printf '%s\n' "$files" \
+                    | grep -qE '^(build\.sh|opam-packages\.txt|scripts/|jasmin/|easycrypt/)'; then
+              build=false
+            fi
+          fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "build: $build"
+
   build:
     name: build ${{ matrix.platform }}
     needs: lint
-    if: ${{ !inputs.release }}
+    if: ${{ !inputs.release && needs.lint.outputs.build == 'true' }}
     strategy:
       fail-fast: false
       matrix:
